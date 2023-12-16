@@ -7,5 +7,4 @@ import com.notthebest.demo.model.Person;
 
 @Repository
 public interface PersonRepo extends JpaRepository<Person, Integer> {
-
 }
