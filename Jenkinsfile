@@ -24,16 +24,17 @@ pipeline {
             }
         }    
         
-        stage('OWASP-scan') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ ', odcInstallation: 'DP'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        } 
+        //stage('OWASP-scan') {
+        //    steps {
+        //        dependencyCheck additionalArguments: '--scan ./ ', odcInstallation: 'DP'
+        //        dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+        //    }
+        //}
+        
         stage('sonarqube') {
             steps {
              withSonarQubeEnv('sonarqube-server') {
-             sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=secretsanta -Dsonar.projectName=santa"
+             sh ''' ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=Santa -Dsonar.projectKey=Santa -Dsonar.java.binaries=. '''
             }
         }
         }
@@ -67,6 +68,12 @@ pipeline {
            }
         }
         
+        stage('Docker Image Scan') {
+            steps {
+               sh "trivy image kaushikbl/secretsanta:${version_number}"
+            }
+        }
+        
         stage("Login & push to DockerHub") {
             steps {
                 script {
@@ -80,7 +87,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-jenkins', toolName: 'docker') {
-                    sh "docker run -d --name secretsanta -p 8080:8081 kaushikbl/secretsanta:${version_number}"
+                    sh "docker run -d --name secretsanta -p 8081:8080 kaushikbl/secretsanta:${version_number}"
                 }
             }
         }
